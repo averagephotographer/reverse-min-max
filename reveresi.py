@@ -1,10 +1,21 @@
 import numpy as np
 
-winner = False
+
+board_py = [
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
 
 def print_board(board):
-    for row in board:
-        print(row)
+    print("   0, 1, 2, 3, 4, 5, 6, 7 ")
+    for row in range(len(board)):
+        print(row, end=' ')
+        print(board[row])
     print()
 
 
@@ -26,11 +37,11 @@ def locations(board):
     return ones, twos, zeros
 
 def adjacent_points(p): 
-    x,y = p
+    i,j = p
     adjacent_points = [
-        (x-1, y-1), (x, y-1), (x+1, y-1),
-        (x-1, y),             (x+1, y),
-        (x-1, y+1), (x, y+1), (x+1, y+1)
+        (i-1, j-1), (i, j-1), (i+1, j-1),
+        (i-1, j),             (i+1, j),
+        (i-1, j+1), (i, j+1), (i+1, j+1)
     ]   
     return adjacent_points
 
@@ -83,11 +94,18 @@ def go_dir(point, direction):
     
 
 
-# use adjacent points to determine the direction
+# gets the next point in the direction the pieces are oriented
 def get_next(p1, p2):
     dir = get_dir(p1, p2)
     return go_dir(p2, dir)
 
+def move(location, is_white):
+    height, width = location
+    if is_white:
+        board_py[height][width] = 1
+    else:
+        board_py[height][width] = 2
+    
 
 # start with every current player point
 # check if there is an adjacent point of the opposite color
@@ -119,48 +137,52 @@ def get_valid_moves(board, is_white_turn):
 
                     # if the start point is a black piece
                     while start_point in b:
+                        # if the next point is empty
                         if next_point in e:
+                            # set that point as an available move
                             available_moves.append(next_point)
                             break
 
-                        # while the next point is a black piece
+                        # if the next point is a black tile
+                        # continue until there are no more
                         while next_point in b:
                             new = get_next(start_point, next_point)
                             start_point = next_point
                             next_point = new
-
-                            
+                            if next_point in e:
+                                available_moves.append(next_point)
+                                break
     return available_moves
                                         
-    # if curr_color is adject to iself, then adjacent to opp_color
-    
-    pass
+def main():
+    winner = False
 
-while(winner == False):
-    # print board 
-    board_py = [
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-        [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
+    while(winner == False):
+        # white = 1
+        # black = 2
 
-    # white = 1
-    # black = 2
-    board_py[3][4] = 1
-    board_py[4][3] = 1
-    board_py[3][3] = 2
-    board_py[4][4] = 2
+        # standard setup
+        # move((3, 4), True)
+        # move((4, 3), True)
+        # move((3, 3), False)
+        # move((4, 4), False)
 
-    print_board(board_py)
+        # height x width coordinate system
+        move((3,3), False)
+        move((4,3), False)
+        move((5,3), False)
+        move((4,4), False)
+        move((3,4), True)
 
-    print(get_valid_moves(board_py, True))
+        
+        print_board(board_py)
 
-    
-    winner = True
+        print(get_valid_moves(board_py, True))
+        
+        winner = True
+
+if __name__ == "__main__":
+    main()
 
 
 
