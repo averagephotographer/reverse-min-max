@@ -221,11 +221,21 @@ def main():
     # default_setup()
 
     while(True):
-        if len(get_valid_moves(board_py, True)) == 0 and len(get_valid_moves(board_py, False)) == 0:
-            break
+        if len(get_valid_moves(board_py, white_turn)) == 0:
+            white_turn = not white_turn
+            print("\npass")
+            if len(get_valid_moves(board_py, white_turn)) == 0:
+                print("\n game over")
+                return
+
         print_board(board_py)
         print(get_valid_moves(board_py, white_turn))
 
+        if white_turn:
+            print("\nWhite turn")
+        else:
+            print("\nBlack turn")
+        
         x = int(input("your x: "))
         y = int(input("your y: "))
 
