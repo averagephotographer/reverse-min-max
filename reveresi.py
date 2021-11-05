@@ -99,6 +99,35 @@ def get_next(p1, p2):
     dir = get_dir(p1, p2)
     return go_dir(p2, dir)
 
+# input a start point (assuming it is a valid move)
+# output rays to update the board with
+def make_rays(start, is_white_turn):
+    ray_array = []
+    adj = adjacent_points(start)
+
+    if (is_white_turn):
+        atkr, opp, empty = locations(board_py)
+    else:
+        opp, atkr, empty = locations(board_py)
+
+    # for every adjacent point
+    for point in adj:
+        # if the point is an opposing piece
+        if point in opp:
+            # continue down that point
+            head = point
+            tail = start
+
+            temp_array = []
+            while head in opp:
+                temp_array.append(head)
+                next = get_next(tail, head)
+                tail = head
+                head = next
+                
+
+
+
 def move(location, is_white):
     height, width = location
     if is_white:
@@ -126,34 +155,32 @@ def get_valid_moves(board, is_white_turn):
         # get all adjacent points for that point
         adj = adjacent_points(att_piece)
         # for every opposite color point on the board
-        for opp_piece in opp:
+        for tail in opp:
             # if the opposite color is adjacent
-            if opp_piece in adj:
+            if tail in adj:
                 # get the next point
-                next_point = get_next(att_piece, opp_piece)
-
+                head = get_next(att_piece, tail)
                 # if the next point is in the same direction
                 # keep going until next_point is in zeroes or not existing
                 
-                # new start point
-                start_point = opp_piece
-
                 # if the start point is a black piece
-                while start_point in opp:
+                while tail in opp:
                     # if the next point is empty
-                    if next_point in empty:
+                    if head in atkr:
+                        break
+                    if head in empty:
                         # set that point as an available move
-                        available_moves.append(next_point)
+                        available_moves.append(head)
                         break
 
                     # if the next point is a black tile
                     # continue until there are no more
-                    while next_point in opp:
-                        new = get_next(start_point, next_point)
-                        start_point = next_point
-                        next_point = new
-                        if next_point in empty:
-                            available_moves.append(next_point)
+                    while head in opp:
+                        new = get_next(tail, head)
+                        tail = head
+                        head = new
+                        if head in empty:
+                            available_moves.append(head)
                             break
     return available_moves
 
@@ -187,8 +214,10 @@ def main():
         y = int(input("your y: "))
         move((x, y), white_turn)
 
-        white_turn = False
-    
+        if (white_turn == True):
+            white_turn = False
+        else:
+            white_turn = True
 
 if __name__ == "__main__":
     main()
