@@ -1,12 +1,13 @@
 
 # white = 1, True
 # black = 2, False
+# board_py = [
 board_py = [
     [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 1, 1, 1, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 2, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 1, 2, 1, 0, 0, 0 ],
+    [ 0, 0, 0, 1, 2, 0, 0, 0 ],
     [ 0, 0, 0, 0, 0, 0, 0, 0 ],
     [ 0, 0, 0, 0, 0, 0, 0, 0 ],
     [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
@@ -151,6 +152,9 @@ def move(location, is_white):
             for point in ray:
                 x, y = point
                 board_py[x][y] = value
+    else:
+        raise Exception("Invalid move")
+        
     
 # start with every current player point
 # check if there is an adjacent point of the opposite color
@@ -180,16 +184,18 @@ def get_valid_moves(board, is_white_turn):
                 # if the next point is in the same direction
                 # keep going until next_point is in zeroes or not existing
                 
-                # if the start point is a black piece
+                # if the start point is an opp piece
                 while tail in opp:
                     # if the next point is empty
                     if head in atkr:
                         break
                     if head in empty:
                         # set that point as an available move
-                        available_moves.append(head)
+                        if head not in available_moves:
+                            available_moves.append(head)
                         break
-
+                    if head not in opp:
+                        break
                     # if the next point is a black tile
                     # continue until there are no more
                     while head in opp:
@@ -197,7 +203,8 @@ def get_valid_moves(board, is_white_turn):
                         tail = head
                         head = new
                         if head in empty:
-                            available_moves.append(head)
+                            if head not in available_moves:
+                                available_moves.append(head)
                             break
     return available_moves
 
@@ -210,10 +217,12 @@ def default_setup():
     board_py[4][4] = 2
                      
 def main():
-    white_turn = True
-    default_setup()
+    white_turn = False
+    # default_setup()
 
-    while(True):    
+    while(True):
+        if len(get_valid_moves(board_py, True)) == 0 and len(get_valid_moves(board_py, False)) == 0:
+            break
         print_board(board_py)
         print(get_valid_moves(board_py, white_turn))
 
