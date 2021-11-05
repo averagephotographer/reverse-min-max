@@ -1,5 +1,3 @@
-import numpy as np
-
 
 # white = 1, True
 # black = 2, False
@@ -124,16 +122,35 @@ def make_rays(start, is_white_turn):
                 next = get_next(tail, head)
                 tail = head
                 head = next
-                
+
+                if head in atkr:
+                    ray_array.append(temp_array)
+                    break
+
+    return ray_array
 
 
 
 def move(location, is_white):
-    height, width = location
-    if is_white:
-        board_py[height][width] = 1
-    else:
-        board_py[height][width] = 2
+    
+    valid = get_valid_moves(board_py, is_white)
+    
+    if location in valid:
+        # change spot
+        height, width = location
+        if is_white:
+            value = 1
+            board_py[height][width] = value
+        else:
+            value = 2
+            board_py[height][width] = value
+        
+        # update all possible rays
+        rays = make_rays(location, is_white)
+        for ray in rays:
+            for point in ray:
+                x, y = point
+                board_py[x][y] = value
     
 # start with every current player point
 # check if there is an adjacent point of the opposite color
@@ -187,22 +204,12 @@ def get_valid_moves(board, is_white_turn):
 
 def default_setup():
     # standard setup
-    move((3, 4), True)
-    move((4, 3), True)
-    move((3, 3), False)
-    move((4, 4), False)
+    board_py[3][4] = 1
+    board_py[4][3] = 1
+    board_py[3][3] = 2
+    board_py[4][4] = 2
                      
 def main():
-    # height x width coordinate system
-    # move((3,3), False)
-    # move((4,3), False)
-    # move((5,3), False)
-    # move((4,4), False)
-    # move((3,4), True)
-
-    
-
-
     white_turn = True
     default_setup()
 
@@ -212,6 +219,8 @@ def main():
 
         x = int(input("your x: "))
         y = int(input("your y: "))
+
+        # height x width coordinate system
         move((x, y), white_turn)
 
         if (white_turn == True):
