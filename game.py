@@ -21,7 +21,6 @@ def place_piece(grid_pos, color):
     game_pos = tup_add(game_pos, offset)
     Bx, By = blocksize
     rad = round(Bx / 2.5)
-    
 
     pygame.draw.circle(screen, color, game_pos, rad)
 
@@ -59,3 +58,5 @@ while(True):
     pygame.display.update()
     for event in pygame.event.get():
         if event.type == pygame.QUIT: sys.exit()
+
+

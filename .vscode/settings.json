@@ -1,5 +1,5 @@
 {
   "python.pythonPath": "C:\\Users\\cdtv1\\AppData\\Local\\Programs\\Python\\Python39\\python.exe",
   "cSpell.words": ["atkr"],
-  "cSpell.ignoreWords": ["horiz", "pygame"]
+  "cSpell.ignoreWords": ["horiz", "pygame", "reversi"]
 }

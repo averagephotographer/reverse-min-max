@@ -1,16 +1,26 @@
-
+import pygame
+import sys
 # white = 1, True
 # black = 2, False
-# board_py = [
 board_py = [
     [ 0, 0, 0, 0, 0, 0, 0, 0 ],
-    [ 1, 1, 1, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 2, 0, 0, 0, 0, 0 ],
-    [ 0, 0, 1, 2, 1, 0, 0, 0 ],
-    [ 0, 0, 0, 1, 2, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    [ 0, 0, 0, 0, 0, 0, 0, 0 ],
     [ 0, 0, 0, 0, 0, 0, 0, 0 ],
     [ 0, 0, 0, 0, 0, 0, 0, 0 ],
     [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
+
+# board_py = [
+    # [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    # [ 1, 1, 1, 0, 0, 0, 0, 0 ],
+    # [ 0, 0, 2, 0, 0, 0, 0, 0 ],
+    # [ 0, 0, 1, 2, 1, 0, 0, 0 ],
+    # [ 0, 0, 0, 1, 2, 0, 0, 0 ],
+    # [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    # [ 0, 0, 0, 0, 0, 0, 0, 0 ],
+    # [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
 
 def print_board(board):
     print("   0, 1, 2, 3, 4, 5, 6, 7 ")
@@ -216,6 +226,96 @@ def default_setup():
     board_py[3][3] = 2
     board_py[4][4] = 2
                      
+def tup_mul(t1, t2):
+    x1, y1 = t1
+    x2, y2 = t2
+    result = ( x1*x2, y1*y2 )
+    return result
+
+def tup_add(t1, t2):
+    x1, y1 = t1
+    x2, y2 = t2
+    result = ( x1+x2, y1+y2 )
+    return result
+
+
+def place_piece(screen, dimensions, grid_pos, color, width=0):
+    width, height = dimensions
+    blocksize = (width/8, height/8) 
+    game_pos = tup_mul(blocksize, grid_pos)
+    offset = tup_mul(blocksize, (.5, .5))
+    game_pos = tup_add(game_pos, offset)
+    Bx, By = blocksize
+    rad = round(Bx / 2.5)
+
+    pygame.draw.circle(screen, color, game_pos, rad, width)
+
+def game():
+    white_turn = True
+    
+    # setup board array
+    default_setup()
+    
+    pygame.init()
+    size = width, height = 800, 800
+    screen = pygame.display.set_mode(size)
+
+    white = (255, 255, 255)
+    black = (0, 0 , 0)
+    green = (50,205,50)
+    light_green = (128, 128, 128)
+    
+
+    screen.fill(green)
+
+    # draws lines
+    for i in range(8):
+        vert_distance  = height / 8
+        # | | | (100, 0), (200, 0), etc.
+        start_vert = (vert_distance * (i+1) , 0)
+        # (100, 700), (200, 700), etc.
+        end_vert = (vert_distance * (i+1), height)
+
+        horiz_distance = width / 8
+        # this needs to be (0, 100), (0, 200), etc.
+        start_horiz = (0, horiz_distance * (i+1))
+        # this needs to be (700, 100)
+        end_horiz = (width, horiz_distance * (i+1))
+
+        pygame.draw.line(screen, black, start_vert, end_vert, 1)
+        pygame.draw.line(screen, black, start_horiz, end_horiz, 1)
+
+    
+    
+    # update board
+    # display valid moves
+
+    running = True
+    while(True):
+        # if both players pass
+        if len(get_valid_moves(board_py, white_turn)) == 0:
+            white_turn = not white_turn
+            if len(get_valid_moves(board_py, white_turn)) == 0:
+                print("\n game over")
+                return
+
+        # before turn
+        att, opp, zer = locations(board_py)
+        for piece in att:
+            place_piece(screen, size, piece, white)
+        for piece in opp:
+            place_piece(screen, size, piece, black)
+
+        avail = get_valid_moves(board_py, white_turn)
+
+        for potential in avail:
+            place_piece(screen, size, potential, light_green, 1)
+            
+
+        pygame.display.update()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT: sys.exit()
+
 def main():
     white_turn = False
     # default_setup()
@@ -247,8 +347,11 @@ def main():
         else:
             white_turn = True
 
+
+    
 if __name__ == "__main__":
-    main()
+    game()
+    # main()
 
 
 
