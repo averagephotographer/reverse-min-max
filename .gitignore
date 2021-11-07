@@ -1,5 +1,5 @@
 .vscode
 .vscode/settings.json
-__pycache__/tkinter.cpython-39.pyc
 .gitignore
 .vscode/settings.json
+*.pyc

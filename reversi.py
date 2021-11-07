@@ -257,9 +257,9 @@ def game():
     default_setup()
     
     pygame.init()
-    size = width, height = 800, 800
     screen = pygame.display.set_mode(size)
 
+    size = width, height = 800, 800
     white = (255, 255, 255)
     black = (0, 0 , 0)
     green = (50,205,50)
