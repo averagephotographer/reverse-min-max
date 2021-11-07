@@ -33,6 +33,17 @@ class Game():
             [ 0, 0, 0, 0, 0, 0, 0, 0 ],
             [ 0, 0, 0, 0, 0, 0, 0, 0 ],
             [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
+        
+        # self.board = [
+        #     [1, 1, 1, 1, 1, 1, 1, 1],
+        #     [1, 1, 1, 1, 1, 1, 1, 1],
+        #     [1, 1, 1, 1, 1, 1, 2, 1],
+        #     [1, 1, 2, 2, 1, 2, 1, 1],
+        #     [1, 1, 2, 1, 1, 1, 1, 1],
+        #     [1, 1, 2, 1, 2, 2, 1, 1],
+        #     [2, 1, 2, 2, 1, 1, 1, 1],
+        #     [0, 0, 2, 1, 1, 1, 1, 1]]
+
         self.board_state = []
         
         self.w_pieces = []
@@ -73,6 +84,9 @@ class Game():
         self.board_state.append(self.board)
 
     def update_locations(self):
+        self.w_pieces = []
+        self.b_pieces = []
+        self.zeros = []
         for i in range(len(self.board)):
             for j in range(len(self.board[0])):
                 if self.board[i][j] == 1:
@@ -170,8 +184,10 @@ class Game():
                     tail = head
                     head = next
 
-                    if head in atkr or head in empty:
+                    if head in atkr:
                         rays_array.append(temp_array)
+                        break
+                    if head in empty:
                         break
         return rays_array
 
@@ -228,7 +244,7 @@ class Game():
                     # if the next point is in the same direction
                     # keep going until next_point is in zeroes or not existing
                     
-                    # if the start point is an opp piece
+                    # if the start point is an opposing piece
                     while tail in opp:
                         # if the next point is empty
                         if head in atkr:
@@ -240,7 +256,8 @@ class Game():
                             break
                         if head not in opp:
                             break
-                        # if the next point is a black tile
+
+                        # if the next point is an opposing tile
                         # continue until there are no more
                         while head in opp:
                             new = self.get_next(tail, head)
@@ -290,16 +307,21 @@ class Game():
         if len(self.get_valid_moves()) == 0:
             self.white_turn = not self.white_turn
             if len(self.get_valid_moves()) == 0:
-                print("\n game over")
                 return True
         return False 
     
+    def transpose(self):
+        n = len(self.board)
+        result = [[row[i] for row in self.board] for i in range(n)]
+        return result
 
     def print_board(self):
+        t_posed = self.transpose()
         print("   0, 1, 2, 3, 4, 5, 6, 7 ")
-        for row in range(len(self.board)):
+        
+        for row in range(len(t_posed)):
             print(row, end=' ')
-            print(self.board[row])
+            print(t_posed[row])
         print()
 
     def convert_pos(self, mouse_pos):
@@ -312,23 +334,27 @@ class Game():
             self.place_piece(piece, self.white)
         for piece in self.b_pieces:
             self.place_piece(piece, self.black)
+        for piece in self.zeros:
+            self.place_piece(piece, self.green)
     
     # stackoverflow.com/a/47112546/16369768
     def play(self):
         clock = pygame.time.Clock()
         self.setup()
         playing = True
+        self.update_locations()
+        self.place_all()
+        avail = self.get_valid_moves()
+        print(avail)
+
+        for potential in avail:
+            self.place_piece(potential, self.gray)
+    
+
         while(playing):
-
-            self.place_all()
-            self.update_locations()
-            avail = self.get_valid_moves()
-
-            for potential in avail:
-                self.place_piece(potential, self.gray)
-
+            
+            clock.tick(15)  # fps
             for event in pygame.event.get():
-                clock.tick(15)  # fps
                 if event.type == pygame.QUIT:
                     playing = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -337,16 +363,42 @@ class Game():
 
                     print("isvalid: {}".format(new_pos in avail))
                     if new_pos in avail:
+                        potential = []
                         print(new_pos)
 
                         self.move(new_pos)
                         self.print_board()
 
+                        self.update_locations()
+                        self.place_all()
+
+                        self.white_turn = not self.white_turn
+                        avail = self.get_valid_moves()
+                        print(avail)
+                        
+                        if len(avail) == 0:
+                            if self.white_turn:
+                                print("white pass")
+                            else:
+                                print("black pass")
+                            self.white_turn = not self.white_turn
+                            avail = self.get_valid_moves()
+                            if len(avail) == 0:
+                                print("no avail moves, game over")
+                                break                        
+
+                        for potential in avail:
+                            self.place_piece(potential, self.gray)
+
+                        
+                        if self.white_turn:
+                            print("white turn")
+                        else:
+                            print("black turn")
+
+
             pygame.display.update()
             
-            if self.game_is_over():
-                print("game over man")
-                break
 
 
             
