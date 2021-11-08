@@ -1,4 +1,5 @@
 from time import sleep
+from sys import exit
 import pygame
 from copy import deepcopy
 
@@ -181,7 +182,10 @@ class Game():
 
 
     def move(self, location):
-        
+
+        print(location)
+        self.print_board()
+        self.update_locations()
         valid = self.get_valid_moves()
         
         if location in valid:
@@ -330,7 +334,7 @@ class Game():
             return eval
         else:
             return -eval
-    
+        
     def minimax(self, position, depth, alpha, beta, maximizingPlayer):
         # return static evaluation of node if depth is 0
         if depth == 0 or self.is_over:
@@ -339,27 +343,27 @@ class Game():
             return evaluation # static evaluation of position
             
         moves = self.get_valid_moves()
-
         # make a new board so we can move without changing the main board
         new = Game()
         new.board = deepcopy(self.board)
-        new.white_turn = deepcopy(self.white_turn)
         old_board = deepcopy(new.board)
+        new.white_turn = deepcopy(self.white_turn)
+
         new.update_locations()
     
         if maximizingPlayer:
             maxEval = float("-inf")
             for move in moves:
-                print("\n\nNew Board:\n")
                 new.move(move)
-                # new.white_turn = not new.white_turn
-                new.print_board()
-                print(new.get_valid_moves())
 
+                new.white_turn = not new.white_turn
                 tempEval = new.minimax(move, depth - 1, alpha, beta, new.white_turn)
+                new.white_turn = not new.white_turn
+                
                 maxEval = max(maxEval, tempEval)
                 alpha = max(alpha, tempEval)
                 new.board = deepcopy(old_board)
+
                 if beta <= alpha:
                     break
 
@@ -368,16 +372,16 @@ class Game():
         else:
             minEval = float("inf")
             for move in moves:
-                print("\n\nNew Board:\n")
                 new.move(move)
-                # new.white_turn = not new.white_turn
-                new.print_board()
-                print(new.get_valid_moves())
 
-                tempEval = new.minimax(move, depth - 1, alpha, beta, not new.white_turn)
+                new.white_turn = not new.white_turn
+                tempEval = new.minimax(move, depth - 1, alpha, beta, new.white_turn)
+                new.white_turn = not new.white_turn
+                
                 minEval = min(minEval, tempEval)
                 beta = min(beta, tempEval)
                 new.board = deepcopy(old_board)
+
                 if beta <= alpha: 
                     break
 
@@ -387,14 +391,16 @@ class Game():
         # separate board
         new = Game()
         new.board = deepcopy(self.board)
-        new.white_turn = deepcopy(self.white_turn)
+
         # should be black's turn
         new.print_board()
         new.update_locations()
+        new.white_turn = deepcopy(self.white_turn)
         avail = new.get_valid_moves()
 
         # scores from minimax
         scores = [0] * len(avail)
+
 
         # minimax
         for i in range(len(avail)):
@@ -414,6 +420,23 @@ class Game():
         self.place_all()
         self.white_turn = True
 
+    def game_over(self):
+        avail = self.get_valid_moves()
+        if len(avail) == 0:
+            if self.white_turn:
+                print("white pass")
+            else:
+                print("black pass")
+                self.white_turn = not self.white_turn
+                avail = self.get_valid_moves()
+                if len(avail) == 0:
+                    print("no avail moves\n\nGame Over!")
+                    self.is_over = True
+                    print("SCORE:")
+                    print("white: {}".format(len(self.w_pieces)))
+                    print("black: {}".format(len(self.b_pieces)))
+                    exit()
+
     # stackoverflow.com/a/47112546/16369768
     def play(self):
         clock = pygame.time.Clock()
@@ -422,7 +445,6 @@ class Game():
         self.update_locations()
         self.place_all()
         avail = self.get_valid_moves()
-        print(avail)
 
         for potential in avail:
             self.place_piece(potential, self.gray)
@@ -482,17 +504,18 @@ class Game():
                         
                         
                         if not self.white_turn:
-                            self.look_forward(avail, depth=1)
-                            sleep(1)
-                            self.print_board()
+                            if not len(self.get_valid_moves()) == 0:
+                                self.look_forward(avail, depth=2)
+                                sleep(1)
+                                self.print_board()
 
-                            self.update_locations()
-                            self.place_all()
-                            
-                            avail = self.get_valid_moves()
+                                self.update_locations()
+                                self.place_all()
+                                
+                                avail = self.get_valid_moves()
 
-                            for potential in avail:
-                                self.place_piece(potential, self.gray)
+                                for potential in avail:
+                                    self.place_piece(potential, self.gray)
 
             pygame.display.update()
             
