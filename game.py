@@ -1,10 +1,7 @@
 from time import sleep
 import pygame
-import sys
 
-from pygame.constants import MOUSEBUTTONDOWN
-
-from reversi import move
+# from pygame.constants import MOUSEBUTTONDOWN
 
 class Game():
     
@@ -23,7 +20,7 @@ class Game():
 
         # background board info
         self.white_turn = True
-
+        self.is_over = False
         self.board = [
             [ 0, 0, 0, 0, 0, 0, 0, 0 ],
             [ 0, 0, 0, 0, 0, 0, 0, 0 ],
@@ -33,16 +30,6 @@ class Game():
             [ 0, 0, 0, 0, 0, 0, 0, 0 ],
             [ 0, 0, 0, 0, 0, 0, 0, 0 ],
             [ 0, 0, 0, 0, 0, 0, 0, 0 ]]
-        
-        # self.board = [
-        #     [1, 1, 1, 1, 1, 1, 1, 1],
-        #     [1, 1, 1, 1, 1, 1, 1, 1],
-        #     [1, 1, 1, 1, 1, 1, 2, 1],
-        #     [1, 1, 2, 2, 1, 2, 1, 1],
-        #     [1, 1, 2, 1, 1, 1, 1, 1],
-        #     [1, 1, 2, 1, 2, 2, 1, 1],
-        #     [2, 1, 2, 2, 1, 1, 1, 1],
-        #     [0, 0, 2, 1, 1, 1, 1, 1]]
 
         self.board_state = []
         
@@ -303,13 +290,6 @@ class Game():
 
         pygame.draw.circle(self.screen, color, game_pos, rad, width)
     
-    def game_is_over(self):
-        if len(self.get_valid_moves()) == 0:
-            self.white_turn = not self.white_turn
-            if len(self.get_valid_moves()) == 0:
-                return True
-        return False 
-    
     def transpose(self):
         n = len(self.board)
         result = [[row[i] for row in self.board] for i in range(n)]
@@ -337,6 +317,36 @@ class Game():
         for piece in self.zeros:
             self.place_piece(piece, self.green)
     
+    def evaluate(self):
+        white_count = len(self.w_pieces)
+        black_count = len(self.b_pieces)
+
+        eval = white_count - black_count
+
+        if self.white_turn:
+            return eval
+        else:
+            return -eval
+    
+    def minimax(self, position, depth, alpha, beta, maximizingPlayer):
+        if depth == 0 or self.is_over:
+            return self.evaluate() # static evaluation of position
+
+        if maximizingPlayer:
+            maxEval = float("-inf")
+            for child in position:
+                tempEval = self.minimax(child, depth - 1, False)
+                maxEval = max(maxEval, eval)
+            return maxEval
+            
+        else:
+            minEval = float("inf")
+            for child in position:
+                tempEval = self.minimax(child, depth - 1, True)
+                minEval = min(minEval, eval)
+            return minEval
+    
+        
     # stackoverflow.com/a/47112546/16369768
     def play(self):
         clock = pygame.time.Clock()
@@ -352,7 +362,13 @@ class Game():
     
 
         while(playing):
-            
+            if not self.white_turn:
+                new = self
+                avail = new.get_valid_moves
+                for position in avail:
+                    new.move(position)
+                    score = new.evaluate()
+                
             clock.tick(15)  # fps
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -363,8 +379,8 @@ class Game():
 
                     print("isvalid: {}".format(new_pos in avail))
                     if new_pos in avail:
+                        self.board_state.append(self.board)
                         potential = []
-                        print(new_pos)
 
                         self.move(new_pos)
                         self.print_board()
@@ -374,7 +390,6 @@ class Game():
 
                         self.white_turn = not self.white_turn
                         avail = self.get_valid_moves()
-                        print(avail)
                         
                         if len(avail) == 0:
                             if self.white_turn:
@@ -384,8 +399,12 @@ class Game():
                             self.white_turn = not self.white_turn
                             avail = self.get_valid_moves()
                             if len(avail) == 0:
-                                print("no avail moves, game over")
-                                break                        
+                                print("no avail moves\n\nGame Over!")
+                                self.is_over = True
+                                print("SCORE:")
+                                print("white: {}".format(len(self.w_pieces)))
+                                print("black: {}".format(len(self.b_pieces)))
+                                break       
 
                         for potential in avail:
                             self.place_piece(potential, self.gray)
@@ -396,13 +415,8 @@ class Game():
                         else:
                             print("black turn")
 
-
             pygame.display.update()
-            
-
-
             
 
 game = Game()
 game.play()
-
