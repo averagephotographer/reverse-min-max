@@ -1,5 +1,6 @@
 from time import sleep
 import pygame
+from copy import deepcopy
 
 # from pygame.constants import MOUSEBUTTONDOWN
 
@@ -202,6 +203,8 @@ class Game():
         else:
             raise Exception("Invalid move")
 
+        self.update_locations()
+
 
     # start with every current player point
     # check if there is an adjacent point of the opposite color
@@ -329,24 +332,88 @@ class Game():
             return -eval
     
     def minimax(self, position, depth, alpha, beta, maximizingPlayer):
+        # return static evaluation of node if depth is 0
         if depth == 0 or self.is_over:
-            return self.evaluate() # static evaluation of position
+            evaluation = self.evaluate()
+            print(evaluation)
+            return evaluation # static evaluation of position
+            
+        moves = self.get_valid_moves()
 
+        # make a new board so we can move without changing the main board
+        new = Game()
+        new.board = deepcopy(self.board)
+        new.white_turn = deepcopy(self.white_turn)
+        old_board = deepcopy(new.board)
+        new.update_locations()
+    
         if maximizingPlayer:
             maxEval = float("-inf")
-            for child in position:
-                tempEval = self.minimax(child, depth - 1, False)
-                maxEval = max(maxEval, eval)
+            for move in moves:
+                print("\n\nNew Board:\n")
+                new.move(move)
+                # new.white_turn = not new.white_turn
+                new.print_board()
+                print(new.get_valid_moves())
+
+                tempEval = new.minimax(move, depth - 1, alpha, beta, new.white_turn)
+                maxEval = max(maxEval, tempEval)
+                alpha = max(alpha, tempEval)
+                new.board = deepcopy(old_board)
+                if beta <= alpha:
+                    break
+
             return maxEval
             
         else:
             minEval = float("inf")
-            for child in position:
-                tempEval = self.minimax(child, depth - 1, True)
-                minEval = min(minEval, eval)
+            for move in moves:
+                print("\n\nNew Board:\n")
+                new.move(move)
+                # new.white_turn = not new.white_turn
+                new.print_board()
+                print(new.get_valid_moves())
+
+                tempEval = new.minimax(move, depth - 1, alpha, beta, not new.white_turn)
+                minEval = min(minEval, tempEval)
+                beta = min(beta, tempEval)
+                new.board = deepcopy(old_board)
+                if beta <= alpha: 
+                    break
+
             return minEval
     
+    def look_forward(self, avail, depth = 3):
+        # separate board
+        new = Game()
+        new.board = deepcopy(self.board)
+        new.white_turn = deepcopy(self.white_turn)
+        # should be black's turn
+        new.print_board()
+        new.update_locations()
+        avail = new.get_valid_moves()
+
+        # scores from minimax
+        scores = [0] * len(avail)
+
+        # minimax
+        for i in range(len(avail)):
+            scores[i] = new.minimax(avail[i], depth, float("-inf"), float("inf"), self.white_turn)
         
+        index = 0
+        largest = float("-inf")
+        for i in range(len(scores)):
+            if scores[i] > largest:
+                index = i
+        
+        print(scores)
+        print(index)
+        self.move(avail[index])
+        self.screen.fill(self.green)
+        self._draw_lines()
+        self.place_all()
+        self.white_turn = True
+
     # stackoverflow.com/a/47112546/16369768
     def play(self):
         clock = pygame.time.Clock()
@@ -360,20 +427,15 @@ class Game():
         for potential in avail:
             self.place_piece(potential, self.gray)
     
-
-        while(playing):
-            if not self.white_turn:
-                new = self
-                avail = new.get_valid_moves
-                for position in avail:
-                    new.move(position)
-                    score = new.evaluate()
                 
+        while(playing):
+                                               
             clock.tick(15)  # fps
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     playing = False
                 elif event.type == pygame.MOUSEBUTTONDOWN:
+                    
                     pos = pygame.mouse.get_pos()
                     new_pos = self.convert_pos(pos)
 
@@ -388,9 +450,8 @@ class Game():
                         self.update_locations()
                         self.place_all()
 
-                        self.white_turn = not self.white_turn
                         avail = self.get_valid_moves()
-                        
+
                         if len(avail) == 0:
                             if self.white_turn:
                                 print("white pass")
@@ -405,15 +466,33 @@ class Game():
                                 print("white: {}".format(len(self.w_pieces)))
                                 print("black: {}".format(len(self.b_pieces)))
                                 break       
+                        
+                        pygame.display.update()
 
+                        
                         for potential in avail:
                             self.place_piece(potential, self.gray)
 
+                        self.white_turn = not self.white_turn
                         
                         if self.white_turn:
                             print("white turn")
                         else:
                             print("black turn")
+                        
+                        
+                        if not self.white_turn:
+                            self.look_forward(avail, depth=1)
+                            sleep(1)
+                            self.print_board()
+
+                            self.update_locations()
+                            self.place_all()
+                            
+                            avail = self.get_valid_moves()
+
+                            for potential in avail:
+                                self.place_piece(potential, self.gray)
 
             pygame.display.update()
             
