@@ -1,3 +1,4 @@
+# minimax algorithm
 def minimax(position, depth, alpha, beta, maximizingPlayer):
     
     if depth == 0 or gameIsOver:

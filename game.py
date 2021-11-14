@@ -1,3 +1,12 @@
+
+"""
+Christopher Tullier
+102-58-973
+Assignment 3 - Othello/Reversi
+
+A reversi game with a minimax opponent
+"""
+
 from time import sleep
 from sys import exit
 import pygame
@@ -35,16 +44,21 @@ class Game():
 
         self.board_state = []
         
+        # all white pieces
         self.w_pieces = []
+        # all black pieces
         self.b_pieces = []
+        # all empty spaces
         self.zeros = []
-        
+    
+    # setup the board for the game
     def setup(self):
         self.screen.fill(self.green)
         self._draw_lines()
         self.default_board()
         self.update_locations()
     
+    # draws the lines on the board
     def _draw_lines(self):
         # draws board lines
         for i in range(8):
@@ -63,15 +77,18 @@ class Game():
             pygame.draw.line(self.screen, self.black, start_vert, end_vert, 1)
             pygame.draw.line(self.screen, self.black, start_horiz, end_horiz, 1)
 
+    # places the starting pieces on the board
     def default_board(self):
         self.board[3][4] = 1
         self.board[4][3] = 1
         self.board[3][3] = 2
         self.board[4][4] = 2
 
+    # saves the board state
     def save_board(self):
         self.board_state.append(self.board)
 
+    # updates the locations of the pieces
     def update_locations(self):
         self.w_pieces = []
         self.b_pieces = []
@@ -85,6 +102,7 @@ class Game():
                 else:
                     self.zeros.append((i, j))
     
+    # gets the adjacent points of a point
     def adjacent_points(self, p):
         i,j = p
         adjacent_points = [
@@ -95,6 +113,7 @@ class Game():
         return adjacent_points
                     
 
+    # gets the direction of the point
     def get_dir(self, p1, p2):
         adj_p1 = self.adjacent_points(p1)
 
@@ -118,7 +137,7 @@ class Game():
             print("not adjacent")
             return None
         
-
+    # goes in the direction of the point
     def go_dir(self, point, direction):
         adj = self.adjacent_points(point)
         if direction == "NW":
@@ -153,7 +172,9 @@ class Game():
         rays_array = []
         adj = self.adjacent_points(start)
 
+        
         if (self.white_turn):
+            # attacker, opponent, empty
             atkr, opp, empty = self.w_pieces, self.b_pieces, self.zeros
         else:
             opp, atkr, empty = self.w_pieces, self.b_pieces, self.zeros
@@ -167,24 +188,28 @@ class Game():
 
                 temp_array = []
 
+                # while the head is a piece of the opposite color
                 while head in opp:
                     temp_array.append(head)
                     next = self.get_next(tail, head)
                     tail = head
                     head = next
 
+                    # if the head is over a piece of the same color
                     if head in atkr:
                         rays_array.append(temp_array)
                         break
+
+                    # if the head is an empty space
                     if head in empty:
                         break
         return rays_array
 
+    # makes a move and flips the pieces
+    def move_and_flip(self, location):
 
-    def move(self, location):
-
-        print(location)
-        self.print_board()
+        # print(location)
+        # self.print_board()
         self.update_locations()
         valid = self.get_valid_moves()
         
@@ -339,7 +364,7 @@ class Game():
         # return static evaluation of node if depth is 0
         if depth == 0 or self.is_over:
             evaluation = self.evaluate()
-            print(evaluation)
+            # print(evaluation)
             return evaluation # static evaluation of position
             
         moves = self.get_valid_moves()
@@ -354,7 +379,7 @@ class Game():
         if maximizingPlayer:
             maxEval = float("-inf")
             for move in moves:
-                new.move(move)
+                new.move_and_flip(move)
 
                 new.white_turn = not new.white_turn
                 tempEval = new.minimax(move, depth - 1, alpha, beta, new.white_turn)
@@ -372,7 +397,7 @@ class Game():
         else:
             minEval = float("inf")
             for move in moves:
-                new.move(move)
+                new.move_and_flip(move)
 
                 new.white_turn = not new.white_turn
                 tempEval = new.minimax(move, depth - 1, alpha, beta, new.white_turn)
@@ -393,7 +418,7 @@ class Game():
         new.board = deepcopy(self.board)
 
         # should be black's turn
-        new.print_board()
+        # new.print_board()
         new.update_locations()
         new.white_turn = deepcopy(self.white_turn)
         avail = new.get_valid_moves()
@@ -412,9 +437,9 @@ class Game():
             if scores[i] > largest:
                 index = i
         
-        print(scores)
-        print(index)
-        self.move(avail[index])
+        # print(scores)
+        # print(index)
+        self.move_and_flip(avail[index])
         self.screen.fill(self.green)
         self._draw_lines()
         self.place_all()
@@ -466,8 +491,8 @@ class Game():
                         self.board_state.append(self.board)
                         potential = []
 
-                        self.move(new_pos)
-                        self.print_board()
+                        self.move_and_flip(new_pos)
+                        # self.print_board()
 
                         self.update_locations()
                         self.place_all()
@@ -505,9 +530,9 @@ class Game():
                         
                         if not self.white_turn:
                             if not len(self.get_valid_moves()) == 0:
-                                self.look_forward(avail, depth=2)
+                                self.look_forward(avail, depth=4)
                                 sleep(1)
-                                self.print_board()
+                                # self.print_board()
 
                                 self.update_locations()
                                 self.place_all()
